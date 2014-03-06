@@ -1,0 +1,8 @@
+mkdir /mnt/cdrom
+mount /dev/cdrom /mnt/cdrom
+cd /tmp
+tar zxpf /mnt/cdrom/VMwareTools-9.4.0-1280544.tar.gz
+cd /tmp/vmware-tools-distrib
+./vmware-install.pl
+umount /dev/cdrom
+cd ~

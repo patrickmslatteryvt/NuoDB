@@ -1,0 +1,15 @@
+Win64 cURL
+http://www.confusedbycode.com/curl/curl-7.35.0-win64-fix1.msi
+
+
+CD C:\nginx\html\ks
+SET GITHUB_OAUTH_KEY=**************************************
+
+curl -L -u %GITHUB_OAUTH_KEY%:x-oauth-basic https://raw.github.com/patrickmslatteryvt/joyent/master/mi-jira/kickstart/ks_jira.cfg -o C:\nginx\html\ks\ks_jira.cfg
+
+CD C:\nginx\
+start C:\nginx\nginx.exe
+
+:: Graceful shutdown
+CD C:\nginx\
+C:\nginx\nginx -s quit

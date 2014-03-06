@@ -1,0 +1,25 @@
+echo 'Configure NTP settings...'
+cp /etc/ntp.conf /etc/ntp.conf.default
+echo '#' company NTP servers>/etc/ntp.conf
+echo server mwgwinvtdc01.internal.mywebgrocer.com iburst>>/etc/ntp.conf
+echo '#' restrict everything>>/etc/ntp.conf
+echo restrict default ignore>>/etc/ntp.conf
+echo '#' allow access via the loopback network>>/etc/ntp.conf
+echo restrict 127.0.0.1>>/etc/ntp.conf
+echo '#' allow access to the company NTP servers>>/etc/ntp.conf
+echo '#' you must use numeric addresses here>>/etc/ntp.conf
+echo restrict mwgwinvtdc01.internal.mywebgrocer.com>>/etc/ntp.conf
+echo '#' if you wanted to serve time to other systems on on the 10.17.0.0/16 network, you would add a line like the one below>>/etc/ntp.conf
+echo '#' restrict 10.17.0.0 netmask 255.255.0.0 nomodify>>/etc/ntp.conf
+echo '#' use the local clock fudged down to stratum 10 as a last resort if the company NTP servers are not reachable>>/etc/ntp.conf
+echo server 127.127.1.0>>/etc/ntp.conf
+echo fudge 127.127.1.0 stratum 10>>/etc/ntp.conf
+echo '#' specify the location of the drift file>>/etc/ntp.conf
+echo '#' this contains the systemic frequency correction for your hardware. >>/etc/ntp.conf
+echo driftfile /var/lib/ntp/drift>>/etc/ntp.conf
+echo wvt2012r2stdco.devdmz.mywebgrocer.com>/etc/ntp/step-tickers
+# Enable the NTPD service
+chkconfig --level 345 ntpd on
+service ntpd start
+# Check our drift
+ntpdate -q wvt2012r2stdco.devdmz.mywebgrocer.com
