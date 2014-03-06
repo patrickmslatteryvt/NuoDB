@@ -1,0 +1,93 @@
+8080    NuoDB Console (web management tool)                                                               /etc/webapp.properties
+8888    NuoDB Automation Console. Port on which the HTTP server listens for service requests..            /etc/nuodb-rest-api.yml
+8889    NuoDB Automation Console. Port on which the HTTP server listens for administrative requests.      /etc/nuodb-rest-api.yml
+48004   Broker/Agent Port                                                                                 /etc/default.properties
+                                                                                                          /etc/nuodb-rest-api.yml
+48005+  Storage Manager and Transaction Engine Ports                                                      /etc/default.propertiesd
+        (if single database and single host then 48005 for the SM and 48006 for the TE).
+        The port range starts at 48005 and increments without bound from there.
+        An upper bound can be specified with a comma separating the lower and upper values.
+        For example, "48005,48050" constrains forked process to ports in the inclusive range [48005..48050].
+
+export GITHUB_OAUTH_KEY=00e50a94a285e2a75db1e16b41f877a0ad877e4a
+curl -L -u ${GITHUB_OAUTH_KEY}:x-oauth-basic https://raw.github.com/patrickmslatteryvt/NuoDB/master/VMs/Linux/config_iptables.sh -o ~/config_iptables.sh
+chmod -c +x ~/config_iptables.sh
+head ~/config_iptables.sh
+~/config_iptables.sh
+
+# Initial firewall
+# iptables -L -n -v --line-numbers
+# Chain INPUT (policy DROP 0 packets, 0 bytes)
+# num   pkts bytes target     prot opt in     out     source               destination         
+# 1       20  1160 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:22 state NEW,ESTABLISHED recent: SET name: SSH side: source 
+# 2        0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0           state RELATED,ESTABLISHED 
+# 3        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:8080 state NEW,ESTABLISHED recent: SET name: HTTP side: source 
+# 4        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:443 state NEW,ESTABLISHED recent: SET name: HTTPS side: source 
+# 5        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:8888 state NEW,ESTABLISHED recent: SET name: HTTPS side: source 
+# 6        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:8889 state NEW,ESTABLISHED recent: SET name: HTTPS side: source 
+# 7        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:48004 state NEW,ESTABLISHED recent: SET name: HTTPS side: source 
+# 8        0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpts:48005:48025 state NEW,ESTABLISHED recent: SET name: HTTPS side: source 
+# 9        0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0           icmp type 8 
+# 10       0     0 ACCEPT     icmp --  eth0   *       0.0.0.0/0            0.0.0.0/0           icmp type 0 
+# 11       0     0 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0           
+# 12       0     0 ACCEPT     udp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           udp spt:53 
+# 13       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0           tcp dpt:25 state ESTABLISHED 
+
+# Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+# num   pkts bytes target     prot opt in     out     source               destination         
+
+# Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+# num   pkts bytes target     prot opt in     out     source               destination         
+# 1       24  7088 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:22 state ESTABLISHED recent: SET name: SSH side: source 
+# 2        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp dpt:80 tcp state NEW 
+# 3        0     0 ACCEPT     all  --  *      eth0    0.0.0.0/0            0.0.0.0/0           state RELATED,ESTABLISHED 
+# 4        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:8080 state RELATED,ESTABLISHED recent: SET name: HTTP side: source 
+# 5        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:443 state RELATED,ESTABLISHED recent: SET name: HTTPS side: source 
+# 6        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:8888 state RELATED,ESTABLISHED recent: SET name: HTTPS side: source 
+# 7        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:8889 state RELATED,ESTABLISHED recent: SET name: HTTPS side: source 
+# 8        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:48004 state RELATED,ESTABLISHED recent: SET name: HTTPS side: source 
+# 9        0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spts:48005:48025 state RELATED,ESTABLISHED recent: SET name: HTTPS side: source 
+# 10       0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0           icmp type 0 
+# 11       0     0 ACCEPT     icmp --  *      eth0    0.0.0.0/0            0.0.0.0/0           icmp type 8 
+# 12       0     0 ACCEPT     all  --  *      lo      0.0.0.0/0            0.0.0.0/0           
+# 13       0     0 ACCEPT     udp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           udp dpt:53 
+# 14       0     0 ACCEPT     tcp  --  *      eth0    0.0.0.0/0            0.0.0.0/0           tcp spt:25 state ESTABLISHED 
+
+# ================================================================================
+
+rpm --install /tmp/nuodb-2.0.3.linux.x64.rpm
+
+Installation Directory    /opt/nuodb
+Path Variable             /opt/nuodb/bin
+NuoDB Broker              Running
+Using options from:       /opt/nuodb/etc/default.properties
+NuoDB Console             Not Running
+To Start:                 sudo service nuowebconsole start
+Access via:               http://localhost:8080 
+License:                  Developers License, unlimited Hosts
+
+
+service nuowebconsole status
+
+/sbin/chkconfig --level 345 nuowebconsole on
+
+service nuowebconsole stop
+service nuoautoconsole stop
+service nuoagent stop
+
+service nuoagent start
+service nuoautoconsole start
+service nuowebconsole start
+
+S98nuoagent -> ../init.d/nuoagent
+S99nuowebconsole -> ../init.d/nuowebconsole
+
+# ================================================================================
+
+# ================================================================================
+
+# ================================================================================
+
+# ================================================================================
+
+# ================================================================================
