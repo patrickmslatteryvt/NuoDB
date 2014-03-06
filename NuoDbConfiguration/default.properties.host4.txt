@@ -27,11 +27,11 @@
 broker = false
 
 # The name used to identify the domain that this agent is a part of 
-domain = ficusCup
+domain = domain
 
 # The default administrative password, and the secret used by agents to
 # setup and maintain the domain securely
-domainPassword = ficusCup
+domainPassword = bird
 
 # The port that this agent listens on for all incoming connections
 #port = 48004
@@ -39,7 +39,7 @@ domainPassword = ficusCup
 # An existing peer (agent or broker) already running in the domain that this
 # agent should connect to on startup to extend the running domain.
 # 2.0.3 or later support a comma-separated list of peers
-#peer = 10.254.250.120,10.254.250.121,10.254.250.122
+peer = nuodb01.devdmz.mywebgrocer.com,nuodb02.devdmz.mywebgrocer.com,nuodb03.devdmz.mywebgrocer.com
 
 # An alternate address to use in identifying this host, which is not actually
 # advertised unless the advertiseAlt property is set.
@@ -70,7 +70,7 @@ domainPassword = ficusCup
 # Each new process (transaction engine or storage manager) that is started on a
 # machine is communicated with via an assigned TCP/IP port that is specified
 # via this property.  Ensure firewall rules allow access from other machines.
-portRange = 48005
+portRange = 48005,48025
 
 # A flag specifying whether this host has automation enabled and should attempt
 # to access the NuoDB "nuodb_system" admin database
