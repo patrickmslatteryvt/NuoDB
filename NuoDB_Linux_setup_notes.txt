@@ -83,6 +83,33 @@ S98nuoagent -> ../init.d/nuoagent
 S99nuowebconsole -> ../init.d/nuowebconsole
 
 # ================================================================================
+Getting Started: Provisioning a Domain
+http://dev.nuodb.com/techblog/2013/03/11/getting-started-provisioning-a-domain
+
+cd /opt/nuodb/
+java -jar jar/nuodbmanager.jar --broker localhost --password bird
+nuodb [domain] > 
+
+nuodb [domain] > show domain summary
+Hosts:
+[broker] localhost/127.0.0.1:48004 (DEFAULT_REGION)
+
+GOTO another node
+service nuoagent status
+service nuoagent stop
+
+nano -w /opt/nuodb/etc/default.properties
+
+peer = nuodb03.devdmz.mywebgrocer.com
+
+service nuoagent start
+
+nuodb [domain] > show domain summary
+
+GO BACK to original node:
+Hosts:
+[broker] localhost/127.0.0.1:48004 (DEFAULT_REGION)
+[broker] nuodb03.devdmz.mywebgrocer.com/10.254.250.122:48004 (DEFAULT_REGION)
 
 # ================================================================================
 
