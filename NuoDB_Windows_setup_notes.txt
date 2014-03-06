@@ -1,0 +1,52 @@
+sc stop NuoDBAgent
+sc query NuoDBAgent
+sc start NuoDBAgent
+
+sc stop NuoConsole
+sc query NuoConsole
+sc start NuoConsole
+
+netsh advfirewall firewall add rule name = SQLPort dir = in protocol = tcp action = allow localport = 1433 remoteip = localsubnet profile = DOMAIN
+
+8080    NuoDB Console (web management tool)                                                               /etc/webapp.properties
+8888    NuoDB Automation Console. Port on which the HTTP server listens for service requests..            /etc/nuodb-rest-api.yml
+8889    NuoDB Automation Console. Port on which the HTTP server listens for administrative requests.      /etc/nuodb-rest-api.yml
+48004   Broker/Agent Port                                                                                 /etc/default.properties
+                                                                                                          /etc/nuodb-rest-api.yml
+48005+  Storage Manager and Transaction Engine Ports                                                      /etc/default.propertiesd
+        (if single database and single host then 48005 for the SM and 48006 for the TE).
+        The port range starts at 48005 and increments without bound from there.
+        An upper bound can be specified with a comma separating the lower and upper values.
+        For example, "48005,48050" constrains forked process to ports in the inclusive range [48005..48050].
+
+        
+netsh advfirewall set domainprofile state on
+netsh advfirewall set privateprofile state on
+netsh advfirewall set publicprofile state on
+
+netsh advfirewall firewall add rule name=nuodb_console dir=in action=allow description="NuoDB Console" protocol=tcp localport=8080 remoteip=any profile=any
+netsh advfirewall firewall add rule name=nuodb_automation_console_service dir=in action=allow description="NuoDB Automation Console - Service requests" protocol=tcp localport=8888 remoteip=any profile=any
+netsh advfirewall firewall add rule name=nuodb_automation_console_admin dir=in action=allow description="NuoDB Automation Console - Administrative requests" protocol=tcp localport=8889 remoteip=any profile=any
+netsh advfirewall firewall add rule name=nuodb_broker dir=in action=allow description="NuoDB Broker/Agent Port" protocol=tcp localport=48004 remoteip=any profile=any
+netsh advfirewall firewall add rule name=nuodb_engines dir=in action=allow description="NuoDB Storage Manager and Transaction Engine Ports" protocol=tcp localport=48005-48025 remoteip=localsubnet profile=any
+
+Syntax
+add rule
+name = RuleName
+dir = { in | out }
+action = { allow | block | bypass }
+[ program = ProgramPath\FileName ]
+[ service = { ServiceShortName | any } ]
+[ description = RuleDescription ]
+[ enable = { yes |no } ]
+[ profile = { public | private | domain | any | [ ,... ] } ]
+[ localip = { Addresses } ]
+[ remoteip = { Addresses } ]
+[ localport = { any | Integer | rpc | rpc-epmap | iphttps | teredo | [ ,... ] } ]
+[ remoteport = { any | Integer | [ ,... ] } ]
+[ protocol = { any | Integer | icmpv4 | icmpv6 | icmpv4:type,code | icmpv6:type,code | tcp | udp } ]
+[ interfacetype = { any | wireless | lan | ras } ]
+[ rmtcomputergrp = SDDLString ]
+[ rmtusrgrp = SDDLString ]
+[ edge = { yes | deferapp | deferuser | no } ]
+[ security = { authenticate | authenc | authdynenc | authnoencap | notrequired } ]
