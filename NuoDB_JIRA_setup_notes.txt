@@ -1,0 +1,235 @@
+# Create the database transaction engines and storage managers for the jira_dev DB
+
+
+mkdir -p /data_b/jira_db_dev/archive
+chown -c nuodb:nuodb /data_b/jira_db_dev/archive
+
+[root@nuodb03 ~]# export PATH=$PATH:/opt/nuodb/bin
+[root@nuodb03 ~]# nuodbmgr --broker localhost --password bird
+nuodb [FicusCup] > start process sm host localhost database jira_db_dev
+Process command-line options: 
+Archive directory: /data_b/jira_db_dev/archive
+Initialize archive: true
+Started: [SM] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48005 (MA) [ pid = 6546 ] ACTIVE
+nuodb [FicusCup/jira_db_dev] > 
+
+
+# ================================================================================
+# Add a transaction engine
+nuodb [FicusCup/jira_db_dev] > start process te host localhost database jira_db_dev
+Process command-line options: --dba-user dba --dba-password dba
+Started: [TE] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48006 (MA) [ pid = 6569 ] ACTIVE
+nuodb [FicusCup/jira_db_dev] > 
+
+<!--  ================================================================================ -->
+
+# Point at a NuoDB JNDI datasource instead of the default MySQL DB that is configured during JIRA setup
+# nano -w /jira/dev/catalina.home/conf/context.xml
+
+
+<!--  ================================================================================ -->
+
+/jira/dev/jira.home/dbconfig.xml 
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $JIRA_HOME/dbconfig.xml -->
+<jira-database-config>
+  <name>defaultDS</name>
+  <delegator-name>default</delegator-name>
+  <database-type>mysql</database-type>
+  <jdbc-datasource>
+    <url>jdbc:mysql://localhost:3306/jira_db_dev?useUnicode=true&amp;characterEncoding=UTF8&amp;sessionVariables=storage_engine=InnoDB</url>
+    <driver-class>com.mysql.jdbc.Driver</driver-class>
+    <username>jira_db_dev_user</username>
+    <password>MyWebGrocer2013#_DEV</password>
+    <pool-min-size>20</pool-min-size>
+    <pool-max-size>20</pool-max-size>
+    <pool-max-wait>30000</pool-max-wait>
+    <pool-max-idle>20</pool-max-idle>
+    <pool-remove-abandoned>true</pool-remove-abandoned>
+    <pool-remove-abandoned-timeout>300</pool-remove-abandoned-timeout>
+    <validation-query>select 1</validation-query>
+    <min-evictable-idle-time-millis>60000</min-evictable-idle-time-millis>
+    <time-between-eviction-runs-millis>300000</time-between-eviction-runs-millis>
+    <pool-test-while-idle>true</pool-test-while-idle>
+    <validation-query-timeout>3</validation-query-timeout>
+  </jdbc-datasource>
+</jira-database-config>
+
+http://doc.nuodb.com/display/doc/Connections+with+Legacy+Databases
+jdbc:com.nuodb://{BROKER}:{PORT}/{DATABASE}[?schema=SCHEMA] 
+jdbc:com.mysql://{HOST}:{PORT}/{SCHEMA}  
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $JIRA_HOME/dbconfig.xml -->
+<jira-database-config>
+  <name>defaultDS</name>
+  <delegator-name>default</delegator-name>
+  <database-type>nuodb</database-type>
+  <jdbc-datasource>
+    <url>jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&amp;characterEncoding=UTF8</url>
+    <driver-class>com.nuodb.jdbc.Driver</driver-class>
+    <username>dba</username>
+    <password>dba</password>
+    <schema>test?</schema>
+    <isolation>write_committed</isolation>
+  </jdbc-datasource>
+</jira-database-config>
+
+
+<!--  ================================================================================ -->
+
+<Context>
+  <Resource name="jdbc/NuoDBHockey"
+    auth="Container"
+    type="javax.sql.DataSource"
+    maxActive="100"
+    maxIdle="30"
+    maxWait="10000"
+    username="dba"
+    password="goalie"
+    driverClassName="com.nuodb.jdbc.Driver"
+    url="jdbc:com.nuodb://localhost:48004/test?schema=Hockey"/>
+</Context>
+
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
+  <description>NuoDB Test App</description>
+  <resource-ref>
+      <description>DB Connection</description>
+      <res-ref-name>jdbc/NuoDBHockey</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+  </resource-ref>
+</web-app>
+
+# Add the NuoDB driver to the Tomcat lib directory
+# cp nuodbjdbc.jar /jira/dev/catalina.home/lib/nuodbjdbc.jar
+chown -c ujiradev:gjiradev /jira/dev/catalina.home/lib/nuodbjdbc.jar
+
+# Start JIRA dev instance
+cd /jira/dev/jira.home && su -s /bin/bash ujiradev
+/jira/dev/catalina.home/bin/start-jira.sh -fg
+
+# Watch JIRA logs
+tail -f /jira/dev/logs/jira/atlassian-jira.log
+
+2014-03-07 11:24:40,790 localhost-startStop-1 INFO      [jira.config.database.DatabaseConfigurationManagerImpl] Now running Database Checklist Launcher
+2014-03-07 11:24:40,937 localhost-startStop-1 ERROR      [NoModule] Error getting datasource via DBCP: JdbcDatasourceInfo{uri='jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&characterEncoding=UTF8', driverClassName='com.nuodb.jdbc.Driver', username='dba', password='********', isolationLevel='null', connectionProperties=null, connectionPoolInfo=ConnectionPoolInfo{maxSize=8, minSize=2, initialSize=null, maxIdle=8, maxWait=60000, sleepTime=300000, lifeTime=600000, deadLockMaxWait=600000, deadLockRetryWait=10000, validationQuery=null, minEvictableTimeMillis=null, timeBetweenEvictionRunsMillis=null, poolPreparedStatements=null, testOnBorrow=null, testOnReturn=null, testWhileIdle=null, maxOpenPreparedStatements=null, numTestsPerEvictionRun=null, removeAbandonedTimeout=null, validationQueryTimeout=null, defaultCatalog=null}}
+org.apache.commons.dbcp.SQLNestedException: Cannot create JDBC driver of class 'com.nuodb.jdbc.Driver' for connect URL 'jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&characterEncoding=UTF8'
+        at org.apache.commons.dbcp.BasicDataSource.createConnectionFactory(BasicDataSource.java:1452)
+        at org.apache.commons.dbcp.BasicDataSource.createDataSource(BasicDataSource.java:1371)
+        at org.apache.commons.dbcp.BasicDataSource.setLogWriter(BasicDataSource.java:1134)
+        at org.ofbiz.core.entity.transaction.DBCPConnectionFactory.getConnection(DBCPConnectionFactory.java:109)
+        at org.ofbiz.core.entity.ConnectionFactory.tryGenericConnectionSources(ConnectionFactory.java:69)
+        at org.ofbiz.core.entity.transaction.JNDIFactory.getConnection(JNDIFactory.java:146)
+        at org.ofbiz.core.entity.TransactionFactory.getConnection(TransactionFactory.java:101)
+        at org.ofbiz.core.entity.ConnectionFactory.getConnection(ConnectionFactory.java:59)
+        at com.atlassian.jira.ofbiz.DefaultOfBizConnectionFactory.getConnection(DefaultOfBizConnectionFactory.java:48)
+        at com.atlassian.jira.upgrade.util.UpgradeUtils.tableExists(UpgradeUtils.java:102)
+        at com.atlassian.jira.appconsistency.db.MinimumUpgradableVersionCheck.databaseSetup(MinimumUpgradableVersionCheck.java:49)
+        at com.atlassian.jira.appconsistency.db.MinimumUpgradableVersionCheck.isOk(MinimumUpgradableVersionCheck.java:30)
+        at com.atlassian.jira.startup.JiraDatabaseConfigChecklist.doStartupChecks(JiraDatabaseConfigChecklist.java:64)
+        at com.atlassian.jira.startup.JiraDatabaseConfigChecklist.startupOK(JiraDatabaseConfigChecklist.java:52)
+        at com.atlassian.jira.startup.DatabaseChecklistLauncher.start(DatabaseChecklistLauncher.java:39)
+        at com.atlassian.jira.startup.DefaultJiraLauncher$2.run(DefaultJiraLauncher.java:110)
+        at com.atlassian.jira.config.database.DatabaseConfigurationManagerImpl.doNowOrEnqueue(DatabaseConfigurationManagerImpl.java:315)
+        at com.atlassian.jira.config.database.DatabaseConfigurationManagerImpl.doNowOrWhenDatabaseConfigured(DatabaseConfigurationManagerImpl.java:215)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.postDbLaunch(DefaultJiraLauncher.java:105)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.access$100(DefaultJiraLauncher.java:30)
+        at com.atlassian.jira.startup.DefaultJiraLauncher$1.run(DefaultJiraLauncher.java:77)
+        at com.atlassian.jira.util.devspeed.JiraDevSpeedTimer.run(JiraDevSpeedTimer.java:34)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.start(DefaultJiraLauncher.java:72)
+        at com.atlassian.jira.startup.LauncherContextListener.contextInitialized(LauncherContextListener.java:54)  <+5> (StandardContext.java:4791) (StandardContext.java:5285) (LifecycleBase.java:150) (ContainerBase.java:1559) (ContainerBase.java:1549)
+        at java.util.concurrent.FutureTask.run(FutureTask.java:262)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+        at java.lang.Thread.run(Thread.java:744)
+Caused by: java.sql.SQLException: No suitable driver
+        at java.sql.DriverManager.getDriver(DriverManager.java:278)
+        at org.apache.commons.dbcp.BasicDataSource.createConnectionFactory(BasicDataSource.java:1437)
+        ... 32 more
+2014-03-07 11:24:40,945 localhost-startStop-1 ERROR      [atlassian.jira.startup.LauncherContextListener] Unable to start JIRA.
+com.atlassian.jira.exception.DataAccessException: java.sql.SQLException: No suitable driver found for jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&characterEncoding=UTF8
+        at com.atlassian.jira.upgrade.util.UpgradeUtils.tableExists(UpgradeUtils.java:129)
+        at com.atlassian.jira.appconsistency.db.MinimumUpgradableVersionCheck.databaseSetup(MinimumUpgradableVersionCheck.java:49)
+        at com.atlassian.jira.appconsistency.db.MinimumUpgradableVersionCheck.isOk(MinimumUpgradableVersionCheck.java:30)
+        at com.atlassian.jira.startup.JiraDatabaseConfigChecklist.doStartupChecks(JiraDatabaseConfigChecklist.java:64)
+        at com.atlassian.jira.startup.JiraDatabaseConfigChecklist.startupOK(JiraDatabaseConfigChecklist.java:52)
+        at com.atlassian.jira.startup.DatabaseChecklistLauncher.start(DatabaseChecklistLauncher.java:39)
+        at com.atlassian.jira.startup.DefaultJiraLauncher$2.run(DefaultJiraLauncher.java:110)
+        at com.atlassian.jira.config.database.DatabaseConfigurationManagerImpl.doNowOrEnqueue(DatabaseConfigurationManagerImpl.java:315)
+        at com.atlassian.jira.config.database.DatabaseConfigurationManagerImpl.doNowOrWhenDatabaseConfigured(DatabaseConfigurationManagerImpl.java:215)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.postDbLaunch(DefaultJiraLauncher.java:105)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.access$100(DefaultJiraLauncher.java:30)
+        at com.atlassian.jira.startup.DefaultJiraLauncher$1.run(DefaultJiraLauncher.java:77)
+        at com.atlassian.jira.util.devspeed.JiraDevSpeedTimer.run(JiraDevSpeedTimer.java:34)
+        at com.atlassian.jira.startup.DefaultJiraLauncher.start(DefaultJiraLauncher.java:72)
+        at com.atlassian.jira.startup.LauncherContextListener.contextInitialized(LauncherContextListener.java:54)  <+5> (StandardContext.java:4791) (StandardContext.java:5285) (LifecycleBase.java:150) (ContainerBase.java:1559) (ContainerBase.java:1549)
+        at java.util.concurrent.FutureTask.run(FutureTask.java:262)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+        at java.lang.Thread.run(Thread.java:744)
+Caused by: java.sql.SQLException: No suitable driver found for jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&characterEncoding=UTF8
+        at java.sql.DriverManager.getConnection(DriverManager.java:596)
+        at java.sql.DriverManager.getConnection(DriverManager.java:215)
+        at org.ofbiz.core.entity.ConnectionFactory.tryGenericConnectionSources(ConnectionFactory.java:87)
+        at org.ofbiz.core.entity.transaction.JNDIFactory.getConnection(JNDIFactory.java:146)
+        at org.ofbiz.core.entity.TransactionFactory.getConnection(TransactionFactory.java:101)
+        at com.atlassian.jira.ofbiz.DefaultOfBizConnectionFactory.getConnection(DefaultOfBizConnectionFactory.java:48)
+        at com.atlassian.jira.upgrade.util.UpgradeUtils.tableExists(UpgradeUtils.java:102)
+        ... 23 more
+2014-03-07 11:24:41,715 localhost-startStop-1 WARN      [jira.config.properties.ApplicationPropertiesStore] Exception getting property 'jira.trustedapps.user.name.transformation.policy.class' from database. Using default
+2014-03-07 11:25:21,069 localhost-startStop-2 INFO      [atlassian.jira.startup.DefaultJiraLauncher] Stopping launchers
+
+<!--  ================================================================================ -->
+
+web.xml
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
+  <description>NuoDB Test App</description>
+  <resource-ref>
+      <description>DB Connection</description>
+      <res-ref-name>jdbc/NuoDBHockey</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+  </resource-ref>
+</web-app>
+
+<!--  ================================================================================ -->
+
+test.jsp
+<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<sql:query var="rs" dataSource="jdbc/NuoDBHockey">
+select id, number, name, position from hockey
+</sql:query>
+
+<html>
+  <head>
+    <title>DB Test</title>
+  </head>
+  <body>
+
+  <h2>Results</h2>
+  
+  <table border="1">
+  <tr><td>Number</td><td>Name</td><td>Position</td></tr>
+<c:forEach var="row" items="${rs.rows}">
+  <tr>
+    <td>${row.number}</td>
+    <td>${row.name}</td>
+    <td>${row.position}</td>
+  </tr>
+</c:forEach>
+  </table>
+
+  </body>
+</html>
+
+<!--  ================================================================================ -->
