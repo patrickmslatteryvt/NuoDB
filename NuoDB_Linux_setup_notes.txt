@@ -220,3 +220,19 @@ Process command-line options:
 Archive directory: /data_a/testDB/archive
 Initialize archive: true
 Started: [SM] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48006 (MA) [ pid = 2435 ] ACTIVE
+
+# ================================================================================
+
+# Scale out the Storefront database to Linux nodes
+
+mkdir -p /data_a/Storefront/archive
+chown -c nuodb:nuodb /data_a/Storefront/archive
+
+2.x Automation
+http://dev.nuodb.com/techblog/20-automation
+
+Spin up a new scale-out database in the region named "myregion":
+
+curl -u domain:bird -X POST -H "Accept: application/json" -H "Content-type: application/json" -d '{"name":"mydatabase", "template":"Multi Host", "username":"dba", "password":"dba", "variables":{"REGION":"myregion"}}' p21:8888/api/1/databases
+
+curl -u FicusCup:bird -X POST -H "Accept: application/json" -H "Content-type: application/json" -d '{"name":"testDB2", "template":"Multi Host", "username":"dba", "password":"dba", "variables":{"REGION":"MA"}}' http://nuodb04.devdmz.mywebgrocer.com:8888/api/1/databases

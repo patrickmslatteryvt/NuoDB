@@ -67,6 +67,41 @@ sc start NuoDBAgent
 
 :: ================================================================================
 
+mkdir C:\Data\testDB
+
+nuodb [FicusCup/testDB] > show domain hosts
+[broker] localhost/127.0.0.1:48004 (MA)
+[broker] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48004 (MA)
+[broker] nuodb01/10.254.250.120:48004 (VT)
+[broker] nuodb02/10.254.250.121:48004 (VT)
+
+# Add a transaction engine on a Windows node
+nuodb [FicusCup/testDB] > start process te host nuodb01/10.254.250.120:48004 database testDB
+Process command-line options: --dba-user dba --dba-password dba
+Started: [TE] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48006 (MA) [ pid = 4243 ] RUNNING
+
+nuodb [FicusCup/testDB] > start process te host nuodb01 database testDB
+Process command-line options: --dba-user dba --dba-password dba
+start: Unknown host: nuodb01
+
+nuodb [FicusCup/testDB] > start process te host nuodb01/10.254.250.120:48004 database testDB
+Process command-line options: --dba-user dba --dba-password dba
+start: Unknown host: nuodb01/10.254.250.120
+
+:: ================================================================================
+
+# Scale out the database to include a Windows node
+
+nuodb [FicusCup] > start process te host nuodb04.devdmz.mywebgrocer.com database testDB
+Process command-line options: --dba-user dba --dba-password dba
+Started: [TE] nuodb04.devdmz.mywebgrocer.com/127.0.0.1:48005 (MA) [ pid = 2399 ] ACTIVE
+
+nuodb [FicusCup] > start process sm host nuodb04.devdmz.mywebgrocer.com database testDB
+Process command-line options: 
+Archive directory: /data_a/testDB/archive
+Initialize archive: true
+Started: [SM] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48006 (MA) [ pid = 2435 ] ACTIVE
+
 :: ================================================================================
 
 :: ================================================================================
