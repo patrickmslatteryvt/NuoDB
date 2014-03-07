@@ -113,8 +113,60 @@ Hosts:
 
 # ================================================================================
 
+service nuowebconsole stop
+service nuoagent stop
+service nuoagent status
+
+cp /opt/nuodb/etc/default.properties /opt/nuodb/etc/default.properties.`date +%d-%m-%y`
+chown -c nuodb:nuodb /opt/nuodb/etc/default.properties.`date +%d-%m-%y`
+
+export GITHUB_OAUTH_KEY=00e50a94a285e2a75db1e16b41f877a0ad877e4a
+curl -L -u ${GITHUB_OAUTH_KEY}:x-oauth-basic https://raw.github.com/patrickmslatteryvt/NuoDB/master/NuoDbConfiguration/Linux/default.properties.host3.txt -o /opt/nuodb/etc/default.properties
+curl -L -u ${GITHUB_OAUTH_KEY}:x-oauth-basic https://raw.github.com/patrickmslatteryvt/NuoDB/master/NuoDbConfiguration/Linux/default.properties.host4.txt -o /opt/nuodb/etc/default.properties
+chown -c nuodb:nuodb /opt/nuodb/etc/default.properties
+
+service nuowebconsole start
+service nuoagent start
+
+# To see the failure log:
+tail -n 25 -f /var/log/nuodb/agent.log
+
+
+
 # ================================================================================
+http://doc.nuodb.com/display/doc/Obtaining+and+Installing+a+License
+
+nano -w /opt/nuodb/etc/license.key
+  Paste in the key
+chown -c nuodb:nuodb /opt/nuodb/etc/license.key
+
+
+export PATH=$PATH:/opt/nuodb/bin
+nuodbmgr --broker localhost --password bird --command "apply domain license licenseFile /opt/nuodb/etc/license.key"
+
+nuodbmgr --broker localhost --password bird --command "show domain license"
+Developer Edition License
+Uid = b9fae069-6c3c-4c5e-888a-f492e5a38b54
+Holder = Developer Edition
+Invalid before = September 10, 2013 12:00:00 AM EDT
+Invalid after = September 10, 2014 12:00:00 AM EDT
 
 # ================================================================================
 
+cd /opt/nuodb/
+java -jar jar/nuodbmanager.jar --broker localhost --password bird
+nuodb [domain] > 
+
+show domain hosts
+[broker] localhost/127.0.0.1:48004 (DEFAULT_REGION)
+[broker] nuodb01/10.254.250.120:48004 (DEFAULT_REGION)
+[ agent] nuodb02/10.254.250.121:48004 (DEFAULT_REGION)
+[ agent] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48004 (DEFAULT_REGION)
+
 # ================================================================================
+
+# create a new database
+
+# ================================================================================
+# Scale out a database
+start process te host host2 database test

@@ -6,6 +6,8 @@ sc stop NuoConsole
 sc query NuoConsole
 sc start NuoConsole
 
+:: ================================================================================
+
 netsh advfirewall firewall add rule name = SQLPort dir = in protocol = tcp action = allow localport = 1433 remoteip = localsubnet profile = DOMAIN
 
 8080    NuoDB Console (web management tool)                                                               /etc/webapp.properties
@@ -50,3 +52,27 @@ action = { allow | block | bypass }
 [ rmtusrgrp = SDDLString ]
 [ edge = { yes | deferapp | deferuser | no } ]
 [ security = { authenticate | authenc | authdynenc | authnoencap | notrequired } ]
+
+:: ================================================================================
+
+# Windows
+sc stop nuowebconsole
+sc stop NuoDBAgent
+sc query NuoDBAgent
+
+SET GITHUB_OAUTH_KEY=00e50a94a285e2a75db1e16b41f877a0ad877e4a
+SET GITHUB_OAUTH_KEY=c29843164bb3b6418b762d04d51697cc8ae72785
+curl -L -u %GITHUB_OAUTH_KEY%:x-oauth-basic https://raw.github.com/patrickmslatteryvt/NuoDB/master/NuoDbConfiguration/Linux/default.properties.host1.txt -o "C:\Program Files\NuoDB\etc\default.properties"
+curl -L -u %GITHUB_OAUTH_KEY%:x-oauth-basic https://raw.github.com/patrickmslatteryvt/NuoDB/master/NuoDbConfiguration/Linux/default.properties.host2.txt -o "C:\Program Files\NuoDB\etc\default.properties"
+
+SET GITHUB_OAUTH_KEY=c29843164bb3b6418b762d04d51697cc8ae72785
+curl -L -u %GITHUB_OAUTH_KEY%:x-oauth-basic https://raw.github.com/patrickmslatteryvt/joyent/master/mi-jira/download_latest_jira_CentOS.sh
+
+
+sc start NuoDBAgent
+
+:: ================================================================================
+
+:: ================================================================================
+
+:: ================================================================================
