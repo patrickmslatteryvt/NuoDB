@@ -27,7 +27,7 @@
 broker = false
 
 # The name used to identify the domain that this agent is a part of 
-domain = domain
+domain = FicusCup
 
 # The default administrative password, and the secret used by agents to
 # setup and maintain the domain securely
@@ -52,7 +52,7 @@ peer = nuodb01.devdmz.mywebgrocer.com,nuodb02.devdmz.mywebgrocer.com,nuodb03.dev
 
 # The region for this host. The region of a host should not be changed after it
 # has been set.
-#region = 
+region = MA
     
 # The log level for the agent log output. Valid levels are, from most to least 
 # verbose: ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE, OFF
