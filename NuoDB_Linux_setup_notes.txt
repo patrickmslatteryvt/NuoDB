@@ -165,8 +165,58 @@ show domain hosts
 
 # ================================================================================
 
-# create a new database
+If broker = false in /opt/nuodb/etc/default.properties then you get this error message in /var/log/nuodb/agent.log every 10 seconds or so. 
+
+2014-03-06T21:15:18.962-0500 INFO com.nuodb.agent.net.NetworkContainerImpl$ServerSessionRunnable.run (serv-socket1-thread-3) error while setting up session
+java.io.IOException: Unexpected failure on authorization: 
+        at com.nuodb.agent.net.NetworkContainerImpl$ServerSessionRunnable.run(NetworkContainerImpl.java:344)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+        at java.lang.Thread.run(Thread.java:744)
+Caused by: java.lang.IllegalArgumentException: Unknown service: Monitor
+        at com.nuodb.agent.service.ServiceContainerImpl.authorizeSession(ServiceContainerImpl.java:149)
+        at com.nuodb.agent.net.NetworkContainerImpl$ServerSessionRunnable.run(NetworkContainerImpl.java:339)
+        ... 3 more
 
 # ================================================================================
-# Scale out a database
-start process te host host2 database test
+
+# create a new database
+
+mkdir -p /data_a/testDB/archive
+chown -c nuodb:nuodb /data_a/testDB/archive
+
+export PATH=$PATH:/opt/nuodb/bin
+nuodbmgr --broker localhost --password bird
+nuodb [FicusCup] > start process sm host localhost database testDB
+Process command-line options: 
+Archive directory: /data_a/testDB/archive
+Initialize archive: true
+Started: [SM] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48005 (MA) [ pid = 4184 ] ACTIVE
+nuodb [FicusCup/testDB] > 
+
+# ================================================================================
+# Add a transaction engine
+nuodb [FicusCup/testDB] > start process te host localhost database testDB
+Process command-line options: --dba-user dba --dba-password dba
+Started: [TE] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48006 (MA) [ pid = 4243 ] RUNNING
+
+# ================================================================================
+
+# Scale out the database to another Linux node
+
+nuodb [FicusCup/testDB] > show domain hosts
+
+[broker] localhost/127.0.0.1:48004 (MA)
+[broker] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48004 (MA)
+[broker] nuodb01/10.254.250.120:48004 (VT)
+[broker] nuodb02/10.254.250.121:48004 (VT)
+
+nuodb [FicusCup] > start process te host nuodb04.devdmz.mywebgrocer.com database testDB
+Process command-line options: --dba-user dba --dba-password dba
+Started: [TE] nuodb04.devdmz.mywebgrocer.com/127.0.0.1:48005 (MA) [ pid = 2399 ] ACTIVE
+
+nuodb [FicusCup] > start process sm host nuodb04.devdmz.mywebgrocer.com database testDB
+Process command-line options: 
+Archive directory: /data_a/testDB/archive
+Initialize archive: true
+Started: [SM] nuodb04.devdmz.mywebgrocer.com/10.254.250.123:48006 (MA) [ pid = 2435 ] ACTIVE
