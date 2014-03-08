@@ -19,7 +19,7 @@ nuodb [FicusCup/jira_db_dev] >
 nuodb [FicusCup/jira_db_dev] > start process te host localhost database jira_db_dev
 Process command-line options: --dba-user dba --dba-password dba
 Started: [TE] nuodb03.devdmz.mywebgrocer.com/127.0.0.1:48006 (MA) [ pid = 6569 ] ACTIVE
-nuodb [FicusCup/jira_db_dev] > 
+nuodb [FicusCup/jira_db_dev] >
 
 <!--  ================================================================================ -->
 
@@ -66,15 +66,78 @@ jdbc:com.mysql://{HOST}:{PORT}/{SCHEMA}
   <delegator-name>default</delegator-name>
   <database-type>nuodb</database-type>
   <jdbc-datasource>
-    <url>jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev?useUnicode=true&amp;characterEncoding=UTF8</url>
+    <url>jdbc:nuodb://nuodb03.devdmz.mywebgrocer.com:48004/jira_db_dev</url>
     <driver-class>com.nuodb.jdbc.Driver</driver-class>
     <username>dba</username>
     <password>dba</password>
-    <schema>test?</schema>
+    <schema>jira_db_dev</schema>
     <isolation>write_committed</isolation>
   </jdbc-datasource>
 </jira-database-config>
 
+
+
+grep -R "com.mysql.jdbc.Driver" /jira/dev/catalina.home/
+
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/com/atlassian/jira/configurator/config/DatabaseType.class matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/com/atlassian/jira/configurator/db/MySqlConfigPanel.class matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/com/atlassian/jira/configurator/db/MySqlDatabaseConfig.class matches
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/database-defaults/mysql.properties:driverClassName=com.mysql.jdbc.Driver
+Binary file /jira/dev/catalina.home/lib/mysql-connector-java-5.1.29-bin.jar matches
+
+
+grep -R ".hibernate." /jira/dev/catalina.home/
+/jira/dev/catalina.home/conf/catalina.properties:ant.jar,ant-junit*.jar,aspectj*.jar,jmx.jar,h2*.jar,hibernate*.jar,httpclient*.jar,\
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/lib/osworkflow-2.8.1.jar matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/lib/bndlib-1.43.0-atlassian-1.jar matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/lib/ehcache-1.2.3.jar matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/lib/crowd-persistence-2.7.1-rc3.jar matches
+Binary file /jira/dev/catalina.home/atlassian-jira/WEB-INF/lib/propertyset-1.5.jar matches
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/database-defaults/mssql.properties:dialect=org.hibernate.dialect.SQLServerDialect
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/database-defaults/postgres72.properties:dialect=org.hibernate.dialect.PostgreSQLDialect
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/database-defaults/oracle10g.properties:dialect=org.hibernate.dialect.Oracle10gDialect
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/database-defaults/mysql.properties:dialect=org.hibernate.dialect.MySQL5InnoDBDialect
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/propertyset.xml:    <propertyset name="hibernate" class="com.opensymphony.module.propertyset.hibernate.HibernatePropertySet">
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/propertyset.xml:        <arg name="hibernate.connection.datasource" value="jdbs/DefautDS" />
+/jira/dev/catalina.home/atlassian-jira/WEB-INF/classes/propertyset.xml:        <arg name="hibernate.dialect" value="net.sf.hibernate.dialect.HSQLDialect" />
+
+
+
+<!--  ================================================================================ -->
+
+/opt/jira/dev/6.1.7/atlassian-jira/WEB-INF/classes/supportedDatabases.properties
+
+key.1=postgres72
+value.1=PostgreSQL
+
+key.2=mysql
+value.2=MySQL
+
+key.3=oracle10g
+value.3=Oracle
+
+key.4=mssql
+value.4=Microsoft SQL Server
+
++key.5=nuodb
++value.5=NuoDB
+
+#key.8=sybase
+#value.8=Sybase ASE
+
+#key.9=db2
+#value.9=DB2
+
+<!--  ================================================================================ -->
+
+/opt/jira/dev/6.1.7/atlassian-jira/WEB-INF/classes/entityengine.xml
+
+    <field-type name="mysql" loader="maincp" location="entitydefs/fieldtype-mysql.xml"/>
++   <field-type name="nuodb" loader="maincp" location="entitydefs/fieldtype-nuodb.xml"/>
+    <field-type name="mssql" loader="maincp" location="entitydefs/fieldtype-mssql.xml"/>
+
+
+/opt/jira/dev/6.1.7/atlassian-jira/WEB-INF/classes/entitydefs/fieldtype-mysql.xml
 
 <!--  ================================================================================ -->
 
